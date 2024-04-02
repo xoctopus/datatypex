@@ -1,11 +1,13 @@
 package types_test
 
 import (
-	. "github.com/onsi/gomega"
-	. "github.com/sincospro/types"
 	"strconv"
 	"testing"
 	"time"
+
+	. "github.com/onsi/gomega"
+
+	. "github.com/sincospro/types"
 )
 
 func TestTimestamp(t *testing.T) {

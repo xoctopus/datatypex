@@ -8,6 +8,7 @@ import (
 	"time"
 
 	. "github.com/onsi/gomega"
+
 	. "github.com/sincospro/types/snowflake_id"
 )
 
