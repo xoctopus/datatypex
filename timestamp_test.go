@@ -1,4 +1,4 @@
-package types_test
+package datatypes_test
 
 import (
 	"strconv"
@@ -7,7 +7,7 @@ import (
 
 	. "github.com/onsi/gomega"
 
-	. "github.com/sincospro/types"
+	. "github.com/sincospro/datatypes"
 )
 
 func TestTimestamp(t *testing.T) {

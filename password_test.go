@@ -1,11 +1,11 @@
-package types_test
+package datatypes_test
 
 import (
 	"testing"
 
 	. "github.com/onsi/gomega"
 
-	. "github.com/sincospro/types"
+	. "github.com/sincospro/datatypes"
 )
 
 func TestPassword(t *testing.T) {

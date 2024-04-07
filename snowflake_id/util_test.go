@@ -8,7 +8,7 @@ import (
 	"github.com/agiledragon/gomonkey/v2"
 	. "github.com/onsi/gomega"
 
-	. "github.com/sincospro/types/snowflake_id"
+	. "github.com/sincospro/datatypes/snowflake_id"
 )
 
 func TestWorkerIDFromIP(t *testing.T) {

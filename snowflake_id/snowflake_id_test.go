@@ -9,7 +9,7 @@ import (
 
 	. "github.com/onsi/gomega"
 
-	. "github.com/sincospro/types/snowflake_id"
+	. "github.com/sincospro/datatypes/snowflake_id"
 )
 
 func NewSnowflakeTestSuite(t *testing.T, n int) *SnowflakeTestSuite {
