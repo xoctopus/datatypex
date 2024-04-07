@@ -41,7 +41,7 @@ func TestSnowflakeFactory_Build(t *testing.T) {
 	NewWithT(t).Expect(err).To(BeNil())
 	t.Log(id)
 
-	id, err = f.Build(1, 2, 8)
+	_, err = f.Build(1, 2, 8)
 	NewWithT(t).Expect(err).NotTo(BeNil())
 	t.Log(err)
 }
