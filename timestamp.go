@@ -1,9 +1,7 @@
 package types
 
 import (
-	"database/sql"
 	"database/sql/driver"
-	"encoding"
 	"fmt"
 	"strconv"
 	"time"
@@ -23,13 +21,6 @@ const (
 
 // openapi:strfmt date-time
 type Timestamp struct{ time.Time }
-
-var (
-	_ sql.Scanner              = (*Timestamp)(nil)
-	_ driver.Valuer            = (*Timestamp)(nil)
-	_ encoding.TextMarshaler   = (*Timestamp)(nil)
-	_ encoding.TextUnmarshaler = (*Timestamp)(nil)
-)
 
 func (Timestamp) DataType(_ string) string {
 	return "bigint"

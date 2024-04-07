@@ -14,12 +14,6 @@ type Address struct {
 	Ext   string
 }
 
-var (
-	_ String          = (*Address)(nil)
-	_ TextMarshaler   = (*Address)(nil)
-	_ TextUnmarshaler = (*Address)(nil)
-)
-
 const AddressSchemeName = "asset"
 
 func ParseAddress(text string) (*Address, error) {

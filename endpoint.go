@@ -2,7 +2,6 @@ package types
 
 import (
 	"fmt"
-	"log"
 	"net/url"
 	"strconv"
 	"strings"
@@ -10,7 +9,7 @@ import (
 
 type Endpoint struct {
 	Scheme   string
-	Hostname string
+	Host     string
 	Port     uint16
 	Base     string
 	Path     string
@@ -22,7 +21,7 @@ type Endpoint struct {
 func (e Endpoint) String() string {
 	u := url.URL{
 		Scheme:   e.Scheme,
-		Host:     e.Host(),
+		Host:     e.Hostname(),
 		RawPath:  "",
 		RawQuery: e.Param.Encode(),
 	}
@@ -41,18 +40,9 @@ func (e Endpoint) String() string {
 
 	s, err := url.QueryUnescape(u.String())
 	if err != nil {
-		log.Fatal(err)
+		return ""
 	}
 	return s
-}
-
-// URL with host, port and path only
-func (e Endpoint) URL() string {
-	return (&url.URL{
-		Scheme: e.Scheme,
-		Host:   e.Host(),
-		Path:   e.Path,
-	}).String()
 }
 
 func (e Endpoint) SecurityString() string {
@@ -60,25 +50,15 @@ func (e Endpoint) SecurityString() string {
 	return e.String()
 }
 
-func (e Endpoint) IsZero() bool { return e.Hostname == "" }
-
-func (e Endpoint) IsTLS() bool {
-	return !e.IsZero() && e.Scheme[len(e.Scheme)-1] == 's'
+func (e Endpoint) IsZero() bool {
+	return e.Host == ""
 }
 
-func (e Endpoint) Host() string {
+func (e Endpoint) Hostname() string {
 	if e.Port == 0 {
-		return e.Hostname
+		return e.Host
 	}
-	return e.Hostname + ":" + strconv.FormatUint(uint64(e.Port), 10)
-}
-
-func (e Endpoint) SchemeHost() string {
-	host := e.Host()
-	if e.Scheme == "" {
-		return host
-	}
-	return fmt.Sprintf("%s://%s", e.Scheme, host)
+	return fmt.Sprintf("%s:%d", e.Host, e.Port)
 }
 
 func (e Endpoint) MarshalText() ([]byte, error) {
@@ -111,11 +91,10 @@ func ParseEndpoint(text string) (*Endpoint, error) {
 	ep.Path = u.Path
 
 	if len(u.Path) > 0 {
-		ep.Base = strings.Split(u.Path[1:], "/")[0]
+		ep.Base = strings.TrimPrefix(u.Path, "/")
 	}
 
-	ep.Hostname = u.Hostname()
-
+	ep.Host = u.Hostname()
 	if port, err := strconv.ParseUint(u.Port(), 10, 16); err == nil {
 		ep.Port = uint16(port)
 	}
@@ -130,6 +109,7 @@ func ParseEndpoint(text string) (*Endpoint, error) {
 }
 
 /*
+// TODO move this function to somewhere else
 func UnmarshalExtra(ext url.Values, v interface{}) error {
 	rv := reflect.ValueOf(v)
 	if rv.Kind() != reflect.Ptr {

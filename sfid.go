@@ -6,11 +6,14 @@ import "strconv"
 
 type SFID uint64
 
-func (sf SFID) MarshalText() ([]byte, error) { return []byte(sf.String()), nil }
+func (sf SFID) MarshalText() ([]byte, error) {
+	return []byte(sf.String()), nil
+}
 
 func (sf *SFID) UnmarshalText(data []byte) (err error) {
 	str := string(data)
 	if len(str) == 0 {
+		*sf = 0
 		return
 	}
 	var u uint64
@@ -19,14 +22,15 @@ func (sf *SFID) UnmarshalText(data []byte) (err error) {
 	return
 }
 
-func (sf SFID) String() string { return strconv.FormatUint(uint64(sf), 10) }
+func (sf SFID) String() string {
+	return strconv.FormatUint(uint64(sf), 10)
+}
 
 type SFIDs []SFID
 
-func (sfs SFIDs) ToUint64() []uint64 {
-	var l []uint64
+func (sfs SFIDs) ToUint64() (integers []uint64) {
 	for _, sf := range sfs {
-		l = append(l, uint64(sf))
+		integers = append(integers, uint64(sf))
 	}
-	return l
+	return
 }
