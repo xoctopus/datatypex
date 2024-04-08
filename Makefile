@@ -1,9 +1,9 @@
 tidy:
 	go mod tidy
 cover: tidy
-	go test -v -race -failfast -parallel 1 -gcflags="all=-N -l" ./... -covermode=atomic -coverprofile cover.out
+	go test -race -failfast -parallel 1 -gcflags="all=-N -l" ./... -covermode=atomic -coverprofile cover.out
 test: tidy
-	go test -v -race -failfast -parallel 1 -gcflags="all=-N -l" ./...
+	go test -race -failfast -parallel 1 -gcflags="all=-N -l" ./...
 
 report:
 	@echo ">>>static checking"

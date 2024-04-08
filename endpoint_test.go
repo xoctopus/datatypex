@@ -3,7 +3,9 @@ package datatypes_test
 import (
 	"net/url"
 	"testing"
+	"time"
 
+	"github.com/davecgh/go-spew/spew"
 	. "github.com/onsi/gomega"
 
 	. "github.com/sincospro/datatypes"
@@ -95,29 +97,45 @@ func TestEndpoint(t *testing.T) {
 		NewWithT(t).Expect((&Endpoint{}).IsZero()).To(BeTrue())
 	})
 
-	/*
-		t.Run("UnmarshalExtra", func(t *testing.T) {
+	t.Run("UnmarshalExtra", func(t *testing.T) {
+		t.Run("Success", func(t *testing.T) {
 			opt := struct {
-				ConnectTimeout Duration `name:"connectTimeout" default:"10s"`
-				ReadTimeout    Duration `name:"readTimeout" default:"10s"`
-				WriteTimeout   Duration `name:"writeTimeout" default:"10s"`
-				IdleTimeout    Duration `name:"idleTimeout" default:"240s"`
-				MaxActive      int      `name:"maxActive" default:"5"`
-				MaxIdle        int      `name:"maxIdle" default:"3"`
-				DB             int      `name:"db" default:"10"`
+				ConnectTimeout time.Duration `name:"connectTimeout" default:"10000000000"`
+				ReadTimeout    time.Duration `name:"readTimeout"    default:"10000000000"`
+				WriteTimeout   time.Duration `name:"writeTimeout"   default:"10000000000"`
+				IdleTimeout    time.Duration `name:"idleTimeout"    default:"240000000000"`
+				MaxActive      int           `name:"maxActive"      default:"5"`
+				MaxIdle        int           `name:"maxIdle"        default:"3"`
+				DB             int           `name:"db"             default:"10"`
+				unexported     any           `name:"unexported"`
+				Ignored        any           `name:"-"`
 			}{}
 
 			err := UnmarshalExtra(url.Values{}, &opt)
+			if err != nil {
+				t.Log(int64(time.Second * 10))
+				t.Log(err)
+			}
 			NewWithT(t).Expect(err).To(BeNil())
-			// spew.Dump(opt)
+			spew.Dump(opt)
 		})
-	*/
-}
-
-func TestEndpoint_UnmarshalText(t *testing.T) {
-
-}
-
-func TestEndpoint_MarshalText(t *testing.T) {
-
+		t.Run("NonPointer", func(t *testing.T) {
+			err := UnmarshalExtra(url.Values{}, 1)
+			NewWithT(t).Expect(err).NotTo(BeNil())
+			NewWithT(t).Expect(err.Error()).To(Equal(ErrUnmarshalExtraNonPointer("int").Error()))
+		})
+		t.Run("NonStruct", func(t *testing.T) {
+			err := UnmarshalExtra(url.Values{}, new(int))
+			NewWithT(t).Expect(err).NotTo(BeNil())
+			NewWithT(t).Expect(err.Error()).To(Equal(ErrUnmarshalExtraNonStruct("int").Error()))
+		})
+		t.Run("FailedToUnmarshal", func(t *testing.T) {
+			err := UnmarshalExtra(url.Values{
+				"age": []string{"age"},
+			}, &struct {
+				Age int `name:"age"`
+			}{})
+			NewWithT(t).Expect(err).NotTo(BeNil())
+		})
+	})
 }

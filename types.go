@@ -17,3 +17,15 @@ var (
 	_ SqlValue = (*Address)(nil)
 	_ SqlValue = (*Timestamp)(nil)
 )
+
+type ErrUnmarshalExtraNonPointer string
+
+func (e ErrUnmarshalExtraNonPointer) Error() string {
+	return "non-pointer value `" + string(e) + "` is not supported"
+}
+
+type ErrUnmarshalExtraNonStruct string
+
+func (e ErrUnmarshalExtraNonStruct) Error() string {
+	return "non-struct value `" + string(e) + "` is not supported"
+}

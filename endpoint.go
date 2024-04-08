@@ -2,9 +2,15 @@ package datatypes
 
 import (
 	"fmt"
+	"go/ast"
 	"net/url"
+	"reflect"
 	"strconv"
 	"strings"
+
+	"github.com/pkg/errors"
+	"github.com/sincospro/x/reflectx"
+	"github.com/sincospro/x/textx"
 )
 
 type Endpoint struct {
@@ -40,7 +46,7 @@ func (e Endpoint) String() string {
 
 	s, err := url.QueryUnescape(u.String())
 	if err != nil {
-		return ""
+		panic(errors.Wrapf(err, "failed to query unescape: %s", u.String()))
 	}
 	return s
 }
@@ -108,16 +114,14 @@ func ParseEndpoint(text string) (*Endpoint, error) {
 	return ep, nil
 }
 
-/*
-// TODO move this function to somewhere else
-func UnmarshalExtra(ext url.Values, v interface{}) error {
+func UnmarshalExtra(ext url.Values, v any) error {
 	rv := reflect.ValueOf(v)
-	if rv.Kind() != reflect.Ptr {
-		return fmt.Errorf("non-pointor value %s is not supported", rv.Type())
+	if rv.Kind() != reflect.Pointer {
+		return ErrUnmarshalExtraNonPointer(rv.Type().String())
 	}
 	rv = rv.Elem()
 	if rv.Kind() != reflect.Struct {
-		return nil
+		return ErrUnmarshalExtraNonStruct(rv.Type().String())
 	}
 
 	rt := rv.Type()
@@ -129,12 +133,12 @@ func UnmarshalExtra(ext url.Values, v interface{}) error {
 			continue
 		}
 		if tag, ok := ft.Tag.Lookup("name"); ok {
-			n, _ := reflectx.TagValueAndFlags(tag)
-			if n == "-" {
+			key, _ := reflectx.ParseTagKeyAndFlags(tag)
+			if key == "-" {
 				continue
 			}
-			if n != "" {
-				fn = n
+			if key != "" {
+				fn = key
 			}
 		}
 		fv := rv.Field(i)
@@ -142,10 +146,9 @@ func UnmarshalExtra(ext url.Values, v interface{}) error {
 		if value == "" {
 			value = ft.Tag.Get("default")
 		}
-		if err := textx.UnmarshalText(fv, []byte(value)); err != nil {
+		if err := textx.UnmarshalText([]byte(value), fv.Addr()); err != nil {
 			return err
 		}
 	}
 	return nil
 }
-*/
