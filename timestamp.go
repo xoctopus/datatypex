@@ -58,7 +58,7 @@ func (t *Timestamp) EqualMicroSeconds(compared Timestamp) bool {
 	return t.Time.UnixMicro() == compared.Time.UnixMicro()
 }
 
-func (t *Timestamp) Scan(value interface{}) error {
+func (t *Timestamp) Scan(value any) error {
 	switch v := value.(type) {
 	case []byte:
 		n, err := strconv.ParseInt(string(v), 10, 64)

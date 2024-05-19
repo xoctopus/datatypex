@@ -16,31 +16,20 @@ func TestAddress_MarshalText(t *testing.T) {
 		Expect string
 	}{
 		{
-			Name: "Asset",
-			Addr: &Address{
-				Group: "avatar",
-				Key:   "filename",
-				Ext:   "png",
-			},
+			Name:   "Asset",
+			Addr:   NewAddress("avatar", "filename.png"),
 			Expect: "asset://avatar/filename.png",
 		}, {
-			Name: "HttpFileURI",
-			Addr: &Address{
-				URL: "https://demo.com/avatar/filename.png",
-			},
+			Name:   "HttpFileURI",
+			Addr:   MustParseAddress("https://demo.com/avatar/filename.png"),
 			Expect: "https://demo.com/avatar/filename.png",
 		}, {
-			Name: "WithoutExtension",
-			Addr: &Address{
-				Group: "avatar",
-				Key:   "filename",
-			},
+			Name:   "WithoutExtension",
+			Addr:   NewAddress("avatar", "filename"),
 			Expect: "asset://avatar/filename",
 		}, {
-			Name: "LocalFile",
-			Addr: &Address{
-				URL: "file:///AbsPath/To/Your/Local/File.ext",
-			},
+			Name:   "LocalFile",
+			Addr:   MustParseAddress("file:///AbsPath/To/Your/Local/File.ext"),
 			Expect: "file:///AbsPath/To/Your/Local/File.ext",
 		}, {
 			Name:   "Empty",
@@ -69,26 +58,17 @@ func TestAddress_UnmarshalText(t *testing.T) {
 		OutErr error
 	}{
 		{
-			Name:  "Asset",
-			Input: "asset://avatar/filename.png",
-			OutVal: &Address{
-				URL:   "",
-				Group: "avatar",
-				Key:   "filename",
-				Ext:   "png",
-			},
+			Name:   "Asset",
+			Input:  "asset://avatar/filename.png",
+			OutVal: NewAddress("avatar", "filename.png"),
 		}, {
-			Name:  "HttpFileURL",
-			Input: "https://group.com/avatar/filename.png",
-			OutVal: &Address{
-				URL: "https://group.com/avatar/filename.png",
-			},
+			Name:   "HttpFileURL",
+			Input:  "https://group.com/avatar/filename.png",
+			OutVal: MustParseAddress("https://group.com/avatar/filename.png"),
 		}, {
-			Name:  "LocalFile",
-			Input: "file:///AbsPath/To/Your/Local/File.ext",
-			OutVal: &Address{
-				URL: "file:///AbsPath/To/Your/Local/File.ext",
-			},
+			Name:   "LocalFile",
+			Input:  "file:///AbsPath/To/Your/Local/File.ext",
+			OutVal: MustParseAddress("file:///AbsPath/To/Your/Local/File.ext"),
 		}, {
 			Name:   "InvalidURI",
 			Input:  "http://foo.com/ctl\x7f",
@@ -103,9 +83,8 @@ func TestAddress_UnmarshalText(t *testing.T) {
 			if c.OutErr != nil {
 				NewWithT(t).Expect(err).NotTo(BeNil())
 			} else {
-				NewWithT(t).Expect(v).To(Equal(c.OutVal))
+				NewWithT(t).Expect(v.String()).To(Equal(c.OutVal.String()))
 			}
-
 		})
 	}
 	NewWithT(t).Expect((&Address{}).DataType("")).To(Equal("varchar(1024)"))

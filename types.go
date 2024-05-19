@@ -1,8 +1,11 @@
 package datatypes
 
 import (
+	"context"
 	"database/sql"
 	"database/sql/driver"
+	"encoding"
+	"reflect"
 )
 
 // SqlValue can convert between sql value and describe sql datatype
@@ -29,3 +32,21 @@ type ErrUnmarshalExtraNonStruct string
 func (e ErrUnmarshalExtraNonStruct) Error() string {
 	return "non-struct value `" + string(e) + "` is not supported"
 }
+
+// Reflects
+var (
+	RtTextUnmarshaller = reflect.TypeOf((*encoding.TextUnmarshaler)(nil)).Elem()
+	RtTextMarshaller   = reflect.TypeOf((*encoding.TextMarshaler)(nil)).Elem()
+)
+
+// Interfaces
+
+type (
+	DefaultSetter        interface{ SetDefault() }
+	Initializer          interface{ Init() }
+	InitializerWithError interface{ Init() error }
+	InitializeByContext  interface{ Init(context.Context) error }
+	CanBeZero            interface{ Zero() bool }
+	Stringer             interface{ String() string }
+	SecurityStringer     interface{ SecurityString() string }
+)

@@ -4,17 +4,9 @@ import (
 	"database/sql/driver"
 	"fmt"
 	"net/url"
+	"path/filepath"
 	"strings"
 )
-
-type Address struct {
-	URL   string
-	Group string
-	Key   string
-	Ext   string
-}
-
-const AddressSchemeName = "asset"
 
 func ParseAddress(text string) (*Address, error) {
 	u, err := url.Parse(text)
@@ -24,30 +16,62 @@ func ParseAddress(text string) (*Address, error) {
 	a := &Address{}
 
 	if u.Scheme != AddressSchemeName {
-		a.URL = u.String()
+		a.url = u.String()
 		return a, nil
 	}
-	a.Group = u.Hostname()
+	a.group = u.Hostname()
 	if len(u.Path) > 0 {
-		a.Key = u.Path[1:]
+		a.key = u.Path[1:]
 		if idx := strings.LastIndex(u.Path, "."); idx != -1 {
-			a.Key = u.Path[1:idx]
-			a.Ext = u.Path[idx+1:]
+			a.key = u.Path[1:idx]
+			a.ext = u.Path[idx+1:]
 		}
 	}
 	return a, nil
 }
 
-func (a Address) String() string {
-	if a.URL != "" {
-		return a.URL
+func MustParseAddress(text string) *Address {
+	v, err := ParseAddress(text)
+	if err != nil {
+		panic(err)
 	}
-	if a.Group == "" && a.Key == "" {
+	return v
+}
+
+func NewAddress(group, filename string) *Address {
+	ext := strings.TrimPrefix(filepath.Ext(filename), ".")
+	key := strings.TrimSuffix(filename, "."+ext)
+	v := &Address{
+		group: group,
+		key:   key,
+		ext:   ext,
+	}
+	v.url = fmt.Sprintf("%s://%s/%s", AddressSchemeName, v.group, v.key)
+	if v.ext != "" {
+		v.url += "." + v.ext
+	}
+	return v
+}
+
+type Address struct {
+	url   string
+	group string
+	key   string
+	ext   string
+}
+
+const AddressSchemeName = "asset"
+
+func (a Address) String() string {
+	if a.url != "" {
+		return a.url
+	}
+	if a.group == "" && a.key == "" {
 		return ""
 	}
-	u := fmt.Sprintf("%s://%s/%s", AddressSchemeName, a.Group, a.Key)
-	if a.Ext != "" {
-		u += "." + a.Ext
+	u := fmt.Sprintf("%s://%s/%s", AddressSchemeName, a.group, a.key)
+	if a.ext != "" {
+		u += "." + a.ext
 	}
 	return u
 }
@@ -71,6 +95,6 @@ func (a Address) DataType(string) string { return "varchar(1024)" }
 
 func (a Address) Value() (driver.Value, error) { return a.String(), nil }
 
-func (a *Address) Scan(src interface{}) error {
+func (a *Address) Scan(src any) error {
 	return a.UnmarshalText([]byte(src.(string)))
 }
