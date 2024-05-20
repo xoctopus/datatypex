@@ -1,7 +1,6 @@
 package datatypes
 
 import (
-	"context"
 	"database/sql"
 	"database/sql/driver"
 	"encoding"
@@ -42,11 +41,8 @@ var (
 // Interfaces
 
 type (
-	DefaultSetter        interface{ SetDefault() }
-	Initializer          interface{ Init() }
-	InitializerWithError interface{ Init() error }
-	InitializeByContext  interface{ Init(context.Context) error }
-	CanBeZero            interface{ Zero() bool }
-	Stringer             interface{ String() string }
-	SecurityStringer     interface{ SecurityString() string }
+	DefaultSetter    interface{ SetDefault() }
+	CanBeZero        interface{ Zero() bool }
+	Stringer         interface{ String() string }
+	SecurityStringer interface{ SecurityString() string }
 )
