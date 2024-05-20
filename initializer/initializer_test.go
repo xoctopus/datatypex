@@ -41,12 +41,14 @@ func TestInit(t *testing.T) {
 		errInitializerWithError,
 		nil,
 		errInitializerByContextWithError,
+		nil,
 	}
 	for i, v := range []any{
 		&Initializer{},
 		&InitializerWithError{},
 		&InitializerByContext{},
 		&InitializerByContextWithError{},
+		&struct{}{},
 	} {
 		if results[i] == nil {
 			NewWithT(t).Expect(initializer.Init(v)).To(BeNil())
