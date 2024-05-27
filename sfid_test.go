@@ -1,11 +1,11 @@
-package datatypes_test
+package datatypex_test
 
 import (
 	"testing"
 
 	. "github.com/onsi/gomega"
 
-	. "github.com/sincospro/datatypes"
+	. "github.com/xoctopus/datatypex"
 )
 
 func TestSFID(t *testing.T) {

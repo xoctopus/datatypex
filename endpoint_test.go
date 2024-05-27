@@ -1,4 +1,4 @@
-package datatypes_test
+package datatypex_test
 
 import (
 	"net/url"
@@ -8,7 +8,7 @@ import (
 	"github.com/davecgh/go-spew/spew"
 	. "github.com/onsi/gomega"
 
-	. "github.com/sincospro/datatypes"
+	. "github.com/xoctopus/datatypex"
 )
 
 func TestEndpoint(t *testing.T) {

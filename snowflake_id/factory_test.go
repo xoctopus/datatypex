@@ -6,7 +6,7 @@ import (
 
 	. "github.com/onsi/gomega"
 
-	. "github.com/sincospro/datatypes/snowflake_id"
+	. "github.com/xoctopus/datatypex/snowflake_id"
 )
 
 var (

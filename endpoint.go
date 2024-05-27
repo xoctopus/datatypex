@@ -1,4 +1,4 @@
-package datatypes
+package datatypex
 
 import (
 	"fmt"
@@ -9,8 +9,8 @@ import (
 	"strings"
 
 	"github.com/pkg/errors"
-	"github.com/sincospro/x/reflectx"
-	"github.com/sincospro/x/textx"
+	"github.com/xoctopus/x/reflectx"
+	"github.com/xoctopus/x/textx"
 )
 
 type Endpoint struct {

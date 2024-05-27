@@ -1,4 +1,4 @@
-package datatypes_test
+package datatypex_test
 
 import (
 	"testing"
@@ -6,7 +6,7 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/pkg/errors"
 
-	. "github.com/sincospro/datatypes"
+	. "github.com/xoctopus/datatypex"
 )
 
 func TestAddress_MarshalText(t *testing.T) {

@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/sincospro/datatypes"
+	"github.com/xoctopus/datatypex"
 )
 
 func NewSnowflakeFactory(bitsWorkerID, bitsSequence uint32, gap uint32, base time.Time) *SnowflakeFactory {
@@ -87,7 +87,7 @@ func (f *SnowflakeFactory) String() string {
 	)
 	return fmt.Sprintf(
 		"EndAt[%s]_MaxWorker[%d]_MaxSeq[%d]_MaxTs[%d]",
-		endAt.Format(datatypes.DefaultTimestampLayout),
+		endAt.Format(datatypex.DefaultTimestampLayout),
 		f.maxWorkerID, f.maxSequence, f.maxTimestamp,
 	)
 }
