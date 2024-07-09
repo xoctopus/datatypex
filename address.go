@@ -30,14 +30,6 @@ func ParseAddress(text string) (*Address, error) {
 	return a, nil
 }
 
-func MustParseAddress(text string) *Address {
-	v, err := ParseAddress(text)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
 func NewAddress(group, filename string) *Address {
 	ext := strings.TrimPrefix(filepath.Ext(filename), ".")
 	key := strings.TrimSuffix(filename, "."+ext)

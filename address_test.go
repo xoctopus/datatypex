@@ -5,6 +5,7 @@ import (
 
 	. "github.com/onsi/gomega"
 	"github.com/pkg/errors"
+	"github.com/xoctopus/x/misc/must"
 
 	. "github.com/xoctopus/datatypex"
 )
@@ -21,7 +22,7 @@ func TestAddress_MarshalText(t *testing.T) {
 			Expect: "asset://avatar/filename.png",
 		}, {
 			Name:   "HttpFileURI",
-			Addr:   MustParseAddress("https://demo.com/avatar/filename.png"),
+			Addr:   must.NoErrorV(ParseAddress("https://demo.com/avatar/filename.png")),
 			Expect: "https://demo.com/avatar/filename.png",
 		}, {
 			Name:   "WithoutExtension",
@@ -29,7 +30,7 @@ func TestAddress_MarshalText(t *testing.T) {
 			Expect: "asset://avatar/filename",
 		}, {
 			Name:   "LocalFile",
-			Addr:   MustParseAddress("file:///AbsPath/To/Your/Local/File.ext"),
+			Addr:   must.NoErrorV(ParseAddress("file:///AbsPath/To/Your/Local/File.ext")),
 			Expect: "file:///AbsPath/To/Your/Local/File.ext",
 		}, {
 			Name:   "Empty",
@@ -64,11 +65,11 @@ func TestAddress_UnmarshalText(t *testing.T) {
 		}, {
 			Name:   "HttpFileURL",
 			Input:  "https://group.com/avatar/filename.png",
-			OutVal: MustParseAddress("https://group.com/avatar/filename.png"),
+			OutVal: must.NoErrorV(ParseAddress("https://group.com/avatar/filename.png")),
 		}, {
 			Name:   "LocalFile",
 			Input:  "file:///AbsPath/To/Your/Local/File.ext",
-			OutVal: MustParseAddress("file:///AbsPath/To/Your/Local/File.ext"),
+			OutVal: must.NoErrorV(ParseAddress("file:///AbsPath/To/Your/Local/File.ext")),
 		}, {
 			Name:   "InvalidURI",
 			Input:  "http://foo.com/ctl\x7f",
