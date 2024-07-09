@@ -91,6 +91,7 @@ func TestEndpoint(t *testing.T) {
 
 	t.Run("SecurityString", func(t *testing.T) {
 		t.Log(cases["Postgres"].ep.SecurityString())
+		t.Log(cases["STMPs"].ep.SecurityString())
 	})
 
 	t.Run("IsZero", func(t *testing.T) {

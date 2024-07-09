@@ -8,7 +8,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/pkg/errors"
+	"github.com/xoctopus/x/misc/must"
 	"github.com/xoctopus/x/reflectx"
 	"github.com/xoctopus/x/textx"
 )
@@ -45,14 +45,14 @@ func (e Endpoint) String() string {
 	}
 
 	s, err := url.QueryUnescape(u.String())
-	if err != nil {
-		panic(errors.Wrapf(err, "failed to query unescape: %s", u.String()))
-	}
+	must.NoErrorWrap(err, "failed to query unescape: %s", u.String())
 	return s
 }
 
 func (e Endpoint) SecurityString() string {
-	e.Password = Password(e.Password.SecurityString())
+	if e.Password != "" {
+		e.Password = Password(e.Password.SecurityString())
+	}
 	return e.String()
 }
 
