@@ -133,7 +133,7 @@ func UnmarshalExtra(ext url.Values, v any) error {
 			continue
 		}
 		if tag, ok := ft.Tag.Lookup("name"); ok {
-			key, _ := reflectx.ParseTagKeyAndFlags(tag)
+			key, _ := reflectx.ParseTagValue(tag)
 			if key == "-" {
 				continue
 			}
