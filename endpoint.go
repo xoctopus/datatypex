@@ -152,3 +152,15 @@ func UnmarshalExtra(ext url.Values, v any) error {
 	}
 	return nil
 }
+
+type ErrUnmarshalExtraNonPointer string
+
+func (e ErrUnmarshalExtraNonPointer) Error() string {
+	return "non-pointer value `" + string(e) + "` is not supported"
+}
+
+type ErrUnmarshalExtraNonStruct string
+
+func (e ErrUnmarshalExtraNonStruct) Error() string {
+	return "non-struct value `" + string(e) + "` is not supported"
+}

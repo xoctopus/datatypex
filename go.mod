@@ -5,6 +5,7 @@ go 1.22.0
 require (
 	github.com/agiledragon/gomonkey/v2 v2.11.0
 	github.com/davecgh/go-spew v1.1.1
+	github.com/google/uuid v1.6.0
 	github.com/onsi/gomega v1.33.1
 	github.com/pkg/errors v0.9.1
 	github.com/xoctopus/x v0.0.20

@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"database/sql/driver"
 	"encoding"
+	"encoding/json"
 	"reflect"
 )
 
@@ -14,23 +15,22 @@ type SqlValue interface {
 	DataType(engine string) string
 }
 
+type TextValue interface {
+	encoding.TextUnmarshaler
+	encoding.TextMarshaler
+}
+
+type JSONValue interface {
+	json.Unmarshaler
+	json.Marshaler
+}
+
 // Assertions
 var (
 	_ SqlValue = (*Address)(nil)
 	_ SqlValue = (*Timestamp)(nil)
+	_ SqlValue = (*UUID)(nil)
 )
-
-type ErrUnmarshalExtraNonPointer string
-
-func (e ErrUnmarshalExtraNonPointer) Error() string {
-	return "non-pointer value `" + string(e) + "` is not supported"
-}
-
-type ErrUnmarshalExtraNonStruct string
-
-func (e ErrUnmarshalExtraNonStruct) Error() string {
-	return "non-struct value `" + string(e) + "` is not supported"
-}
 
 // Reflects
 var (
@@ -39,7 +39,6 @@ var (
 )
 
 // Interfaces
-
 type (
 	DefaultSetter    interface{ SetDefault() }
 	CanBeZero        interface{ Zero() bool }
