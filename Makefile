@@ -1,4 +1,3 @@
-
 PACKAGES=$(shell go list ./... | grep -E -v 'pb$|testdata|mock|proto|example')
 MOD=$(shell cat go.mod | grep ^module -m 1 | awk '{ print $$2; }' || '')
 MOD_NAME=$(shell basename $(MOD))
@@ -33,7 +32,7 @@ dep:
 		echo "installing goimports-reviser for format sources"; \
 		go install -v github.com/incu6us/goimports-reviser/v3@latest; \
 	fi
-	@if [ "${GOTEST}" == "xgo" ] && [ "${XGO}" != "0" ]; then \
+	@if [ "${GOTEST}" = "xgo" ] && [ "${XGO}" != "0" ]; then \
 		echo "installing xgo for unit test"; \
 		go install github.com/xhd2015/xgo/cmd/xgo@latest; \
 	fi
