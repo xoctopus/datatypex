@@ -52,7 +52,7 @@ tidy:
 	@echo "==> tidy"
 	@go mod tidy
 
-cover: dep tidy
+cover: show dep tidy
 	@echo "==> run unit test with coverage"
 	@$(GOTEST) test -failfast -parallel 1 -gcflags="all=-N -l" ${PACKAGES} -covermode=count -coverprofile=cover.out
 
