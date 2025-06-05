@@ -3,140 +3,86 @@ package datatypex_test
 import (
 	"net/url"
 	"testing"
-	"time"
 
-	"github.com/davecgh/go-spew/spew"
 	. "github.com/onsi/gomega"
+	"github.com/pkg/errors"
 
 	. "github.com/xoctopus/datatypex"
 )
 
-func TestEndpoint(t *testing.T) {
+var (
+	AsErrParseEndpointByURL *ErrParseEndpointByURL
+)
+
+func TestParseEndpoint(t *testing.T) {
 	cases := map[string]struct {
-		ep  *Endpoint
-		url string
+		uri    string
+		expect *Endpoint
 	}{
 		"STMPs": {
-			ep: &Endpoint{
+			uri: "stmps://mail.xxx.com:465",
+			expect: &Endpoint{
 				Scheme: "stmps",
-				Host:   "stmps.mail.xxx.com",
+				Host:   "mail.xxx.com",
 				Port:   465,
 			},
-			url: "stmps://stmps.mail.xxx.com:465",
 		},
 		"Postgres": {
-			ep: &Endpoint{
+			uri: "postgres://username:password@hostname:5432/database_name?sslmode=disable",
+			expect: &Endpoint{
 				Scheme:   "postgres",
 				Host:     "hostname",
 				Username: "username",
 				Password: "password",
 				Port:     5432,
-				Path:     "/database_name",
 				Base:     "database_name",
 				Param:    url.Values{"sslmode": {"disable"}},
 			},
-			url: "postgres://username:password@hostname:5432/database_name?sslmode=disable",
+		},
+		"HTTPs": {
+			uri: "https://hostname/path/to/resource?page=1&q=go 语言",
+			expect: &Endpoint{
+				Scheme: "https",
+				Host:   "hostname",
+				Base:   "path/to/resource",
+				Param:  url.Values{"q": {"go 语言"}, "page": {"1"}},
+			},
 		},
 		"NoScheme": {
-			ep: &Endpoint{
-				Scheme:   "",
-				Host:     "hostname",
-				Username: "username",
-				Password: "password",
-				Port:     5432,
-				Path:     "/database_name",
-				Base:     "database_name",
-				Param:    url.Values{"sslmode": {"disable"}},
+			uri: "//hostname:1234/path/to/resource",
+			expect: &Endpoint{
+				Host: "hostname",
+				Port: 1234,
+				Base: "path/to/resource",
 			},
-			url: "//username:password@hostname:5432/database_name?sslmode=disable",
-		},
-		"HostOnly": {
-			ep: &Endpoint{
-				Scheme: "https",
-				Host:   "host",
-				Base:   "path",
-				Path:   "/path",
-			},
-			url: "https://host/path",
-		},
-		"FailedToParse1": {
-			url: string([]byte{0x7f}),
 		},
 	}
 
 	for name, c := range cases {
 		t.Run(name, func(t *testing.T) {
-			if c.ep != nil {
-				NewWithT(t).Expect(c.ep.String()).To(Equal(c.url))
-				text, err := c.ep.MarshalText()
-				NewWithT(t).Expect(err).To(BeNil())
-				NewWithT(t).Expect(string(text)).To(Equal(c.url))
-			}
+			ep, err := ParseEndpoint(c.uri)
+			NewWithT(t).Expect(err).To(BeNil())
+			NewWithT(t).Expect(ep.String()).To(Equal(c.uri))
+			NewWithT(t).Expect(ep.String()).To(Equal(c.expect.String()))
+			NewWithT(t).Expect(ep.SecurityString()).To(Equal(c.expect.SecurityString()))
+			NewWithT(t).Expect(ep.IsZero()).To(Equal(c.expect.IsZero()))
+			NewWithT(t).Expect(ep.Hostname()).To(Equal(c.expect.Hostname()))
 
-			parsed, err1 := ParseEndpoint(c.url)
-			unmarshaled := &Endpoint{}
-			err2 := unmarshaled.UnmarshalText([]byte(c.url))
+			text, err := c.expect.MarshalText()
+			NewWithT(t).Expect(err).To(BeNil())
+			NewWithT(t).Expect(text).To(Equal([]byte(c.uri)))
 
-			if c.ep != nil {
-				NewWithT(t).Expect(err1).To(BeNil())
-				NewWithT(t).Expect(err2).To(BeNil())
-				NewWithT(t).Expect(*parsed).To(Equal(*c.ep))
-				NewWithT(t).Expect(*unmarshaled).To(Equal(*c.ep))
-			} else {
-				NewWithT(t).Expect(err1).NotTo(BeNil())
-				NewWithT(t).Expect(err2).NotTo(BeNil())
-			}
+			err = ep.UnmarshalText(text)
+			NewWithT(t).Expect(err).To(BeNil())
+			NewWithT(t).Expect(ep.String()).To(Equal(c.uri))
 		})
 	}
 
-	t.Run("SecurityString", func(t *testing.T) {
-		t.Log(cases["Postgres"].ep.SecurityString())
-		t.Log(cases["STMPs"].ep.SecurityString())
-	})
-
-	t.Run("IsZero", func(t *testing.T) {
-		NewWithT(t).Expect((&Endpoint{}).IsZero()).To(BeTrue())
-	})
-
-	t.Run("UnmarshalExtra", func(t *testing.T) {
-		t.Run("Success", func(t *testing.T) {
-			opt := struct {
-				ConnectTimeout time.Duration `name:"connectTimeout" default:"10000000000"`
-				ReadTimeout    time.Duration `name:"readTimeout"    default:"10000000000"`
-				WriteTimeout   time.Duration `name:"writeTimeout"   default:"10000000000"`
-				IdleTimeout    time.Duration `name:"idleTimeout"    default:"240000000000"`
-				MaxActive      int           `name:"maxActive"      default:"5"`
-				MaxIdle        int           `name:"maxIdle"        default:"3"`
-				DB             int           `name:"db"             default:"10"`
-				unexported     any           `name:"unexported"`
-				Ignored        any           `name:"-"`
-			}{}
-
-			err := UnmarshalExtra(url.Values{}, &opt)
-			if err != nil {
-				t.Log(int64(time.Second * 10))
-				t.Log(err)
-			}
-			NewWithT(t).Expect(err).To(BeNil())
-			spew.Dump(opt)
-		})
-		t.Run("NonPointer", func(t *testing.T) {
-			err := UnmarshalExtra(url.Values{}, 1)
-			NewWithT(t).Expect(err).NotTo(BeNil())
-			NewWithT(t).Expect(err.Error()).To(Equal(ErrUnmarshalExtraNonPointer("int").Error()))
-		})
-		t.Run("NonStruct", func(t *testing.T) {
-			err := UnmarshalExtra(url.Values{}, new(int))
-			NewWithT(t).Expect(err).NotTo(BeNil())
-			NewWithT(t).Expect(err.Error()).To(Equal(ErrUnmarshalExtraNonStruct("int").Error()))
-		})
-		t.Run("FailedToUnmarshal", func(t *testing.T) {
-			err := UnmarshalExtra(url.Values{
-				"age": []string{"age"},
-			}, &struct {
-				Age int `name:"age"`
-			}{})
-			NewWithT(t).Expect(err).NotTo(BeNil())
-		})
+	t.Run("FailedToParseURL", func(t *testing.T) {
+		input := "http://hostname:http/path/to/resource"
+		_, err := ParseEndpoint(input)
+		NewWithT(t).Expect(errors.As(err, &AsErrParseEndpointByURL)).To(BeTrue())
+		err = (&Endpoint{}).UnmarshalText([]byte(input))
+		NewWithT(t).Expect(errors.As(err, &AsErrParseEndpointByURL)).To(BeTrue())
 	})
 }

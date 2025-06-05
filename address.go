@@ -11,7 +11,7 @@ import (
 func ParseAddress(text string) (*Address, error) {
 	u, err := url.Parse(text)
 	if err != nil {
-		return nil, err
+		return nil, NewErrParseAddressByURL(text, err)
 	}
 	a := &Address{}
 
@@ -81,12 +81,14 @@ func (a *Address) UnmarshalText(text []byte) error {
 	return nil
 }
 
-var _ SqlValue = (*Address)(nil)
-
-func (a Address) DataType(string) string { return "varchar(1024)" }
-
-func (a Address) Value() (driver.Value, error) { return a.String(), nil }
+func (a Address) Value() (driver.Value, error) {
+	return a.String(), nil
+}
 
 func (a *Address) Scan(src any) error {
 	return a.UnmarshalText([]byte(src.(string)))
+}
+
+func (a Address) DBType(engine DBEngineType) string {
+	return "varchar(1024)"
 }

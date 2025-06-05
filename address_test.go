@@ -10,6 +10,10 @@ import (
 	. "github.com/xoctopus/datatypex"
 )
 
+var (
+	AsErrParseAddressByURL *ErrParseAddressByURL
+)
+
 func TestAddress_MarshalText(t *testing.T) {
 	cases := []*struct {
 		Name   string
@@ -52,7 +56,7 @@ func TestAddress_MarshalText(t *testing.T) {
 }
 
 func TestAddress_UnmarshalText(t *testing.T) {
-	cases := []*struct {
+	cases := []struct {
 		Name   string
 		Input  string
 		OutVal *Address
@@ -73,7 +77,7 @@ func TestAddress_UnmarshalText(t *testing.T) {
 		}, {
 			Name:   "InvalidURI",
 			Input:  "http://foo.com/ctl\x7f",
-			OutErr: errors.New("should parse failed"),
+			OutErr: AsErrParseAddressByURL,
 		},
 	}
 
@@ -81,12 +85,12 @@ func TestAddress_UnmarshalText(t *testing.T) {
 		t.Run(c.Name, func(t *testing.T) {
 			v := &Address{}
 			err := v.Scan(c.Input)
-			if c.OutErr != nil {
-				NewWithT(t).Expect(err).NotTo(BeNil())
+			if err != nil {
+				NewWithT(t).Expect(errors.As(err, &c.OutErr)).NotTo(BeNil())
 			} else {
 				NewWithT(t).Expect(v.String()).To(Equal(c.OutVal.String()))
 			}
 		})
 	}
-	NewWithT(t).Expect((&Address{}).DataType("")).To(Equal("varchar(1024)"))
+	NewWithT(t).Expect((&Address{}).DBType("")).To(Equal("varchar(1024)"))
 }

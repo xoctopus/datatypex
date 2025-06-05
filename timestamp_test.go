@@ -1,7 +1,8 @@
 package datatypex_test
 
 import (
-	"strconv"
+	"errors"
+	"fmt"
 	"testing"
 	"time"
 
@@ -10,124 +11,118 @@ import (
 	. "github.com/xoctopus/datatypex"
 )
 
+func ExampleTimestamp_String() {
+	ts, _ := ParseTimestamp("2022-10-24T07:30:00.000CST")
+	fmt.Println("SYS:", ts.String()) // default use time.Local
+
+	SetDefaultTimeZone(UTC)
+	ts, _ = ParseTimestamp("2022-10-24T07:30:00.000CST")
+	fmt.Println("UTC:", ts.String())
+
+	SetDefaultTimeZone(CST)
+	ts, _ = ParseTimestamp("2022-10-24T07:30:00.000CST")
+	fmt.Println("CST:", ts.String())
+
+	SetDefaultTimeZone(JST)
+	ts, _ = ParseTimestamp("2022-10-24T07:30:00.000CST")
+	fmt.Println("JST:", ts.String())
+
+	SetDefaultTimeZone(SGT)
+	ts, _ = ParseTimestamp("2022-10-24T07:30:00.000CST")
+	fmt.Println("SGT:", ts.String())
+
+	// Output:
+	// SYS: 2022-10-24T07:30:00.000CST
+	// UTC: 2022-10-23T23:30:00.000UTC
+	// CST: 2022-10-24T07:30:00.000CST
+	// JST: 2022-10-24T08:30:00.000JST
+	// SGT: 2022-10-24T07:30:00.000SGT
+}
+
+var (
+	AsErrTimestampScanBytes        *ErrTimestampScanBytes
+	AsErrTimestampScanInvalidInput *ErrTimestampScanInvalidInput
+)
+
 func TestTimestamp(t *testing.T) {
-	ts := Now()
-
-	t.Run("DataType", func(t *testing.T) {
-		NewWithT(t).Expect(ts.DataType("")).To(Equal("bigint"))
-	})
-
-	t.Run("ParseTimestampFromString", func(t *testing.T) {
-		ts2, err := ParseTimestampFromString(ts.String())
+	SetDefaultTimeZone(CST)
+	t.Run("ParseTimestampWithLayout", func(t *testing.T) {
+		ts := Now()
+		parsed, err := ParseTimestampWithLayout(ts.String(), DefaultTimestampLayout)
 		NewWithT(t).Expect(err).To(BeNil())
-		NewWithT(t).Expect(ts.Equal(ts2)).To(BeTrue())
-	})
-
-	t.Run("ParseTimestampFromStringWithLayout", func(t *testing.T) {
-		ts2, err := ParseTimestampFromStringWithLayout(ts.String(), DefaultTimestampLayout)
-		NewWithT(t).Expect(err).To(BeNil())
-		NewWithT(t).Expect(ts.Equal(ts2)).To(BeTrue())
-		ts2, err = ParseTimestampFromStringWithLayout(ts.String(), "invalid timestamp layout")
-		NewWithT(t).Expect(err).NotTo(BeNil())
-		t.Log(ts2)
-	})
-
-	t.Run("Equals", func(t *testing.T) {
-		t1 := Timestamp{Time: ts.Time}
-		t2 := Timestamp{Time: ts.Time}
-		NewWithT(t).Expect(t1.Equal(t2)).To(BeTrue())
-		NewWithT(t).Expect(t1.EqualSeconds(t2)).To(BeTrue())
-		NewWithT(t).Expect(t1.EqualMillionSeconds(t2)).To(BeTrue())
-		NewWithT(t).Expect(t1.EqualMicroSeconds(t2)).To(BeTrue())
-	})
-
-	t.Run("Scan", func(t *testing.T) {
-		t3 := Timestamp{}
-		t.Run("UnsupportedValueType", func(t *testing.T) {
-			err := t3.Scan("unsupported value type")
+		NewWithT(t).Expect(ts.String()).To(Equal(parsed.String()))
+		t.Run("InvalidLayout", func(t *testing.T) {
+			_, err = ParseTimestampWithLayout(ts.String(), time.RFC822)
 			NewWithT(t).Expect(err).NotTo(BeNil())
 		})
-		t.Run("ScanFromBytes", func(t *testing.T) {
-			t.Run("InvalidBytesValue", func(t *testing.T) {
-				err := t3.Scan([]byte("invalid value"))
-				NewWithT(t).Expect(err).NotTo(BeNil())
-			})
-			err := t3.Scan(strconv.AppendInt([]byte{}, ts.UnixMilli(), 10))
-			NewWithT(t).Expect(err).To(BeNil())
-			t.Log(t3)
-		})
-		t.Run("ScanFromInt", func(t *testing.T) {
-			t.Run("Zero", func(t *testing.T) {
-				err := t3.Scan(nil)
-				NewWithT(t).Expect(err).To(BeNil())
-				NewWithT(t).Expect(t3).To(Equal(TimestampUnixZero))
-			})
-			t4 := Timestamp{}
-			err := t4.Scan(int64(-1))
-			NewWithT(t).Expect(err).To(BeNil())
-			NewWithT(t).Expect(t3).To(Equal(TimestampUnixZero))
-
-			err = t4.Scan(ts.UnixMilli())
-			NewWithT(t).Expect(err).To(BeNil())
-			NewWithT(t).Expect(ts.Equal(t4)).To(BeTrue())
-			t.Log(t4)
-		})
 	})
-
+	t.Run("DialectType", func(t *testing.T) {
+		ts := Now()
+		NewWithT(t).Expect(ts.DBType("postgres")).To(Equal("bigint"))
+		NewWithT(t).Expect(ts.DBType("sqlite")).To(Equal("integer"))
+	})
 	t.Run("Value", func(t *testing.T) {
-		t4 := Timestamp{}
-
-		NewWithT(t).Expect(t4.Scan(ts.UnixMilli())).To(BeNil())
-
-		v, err := t4.Value()
+		ts, err := ParseTimestamp("1970-01-01T00:00:01.234UTC")
 		NewWithT(t).Expect(err).To(BeNil())
-		NewWithT(t).Expect(v.(int64)).To(Equal(t4.UnixMilli()))
-
-		v, err = TimestampZero.Value()
+		v, err := ts.Value()
 		NewWithT(t).Expect(err).To(BeNil())
-		NewWithT(t).Expect(v.(int64)).To(Equal(int64(0)))
+		NewWithT(t).Expect(v).To(Equal(int64(1234)))
+
+		t.Run("InvalidOrZeroTimestamp", func(t *testing.T) {
+			v, err = TimestampZero.Value()
+			NewWithT(t).Expect(err).To(BeNil())
+			NewWithT(t).Expect(v).To(Equal(int64(0)))
+		})
 	})
-	// Value
-
+	t.Run("Scan", func(t *testing.T) {
+		for _, v := range []*struct {
+			input  any
+			err    any
+			result Timestamp
+		}{
+			{[]byte("1970-01-01T08:00:01.234CST"), AsErrTimestampScanBytes, Timestamp{}},
+			{[]byte("1234"), nil, Timestamp{Time: time.UnixMilli(1234)}},
+			{int64(-1), nil, TimestampUnixZero},
+			{int64(0), nil, TimestampUnixZero},
+			{int64(1234), nil, Timestamp{Time: time.UnixMilli(1234)}},
+			{nil, nil, TimestampUnixZero},
+			{"abc", AsErrTimestampScanInvalidInput, Timestamp{}},
+		} {
+			ts := Now()
+			err := ts.Scan(v.input)
+			if v.err != nil {
+				NewWithT(t).Expect(errors.As(err, &v.err)).To(BeTrue())
+			} else {
+				NewWithT(t).Expect(err).To(BeNil())
+				NewWithT(t).Expect(ts == v.result).To(BeTrue())
+			}
+		}
+	})
 	t.Run("String", func(t *testing.T) {
-		NewWithT(t).Expect(TimestampZero.String()).To(Equal(""))
 		NewWithT(t).Expect(TimestampUnixZero.String()).To(Equal(""))
-		NewWithT(t).Expect(ts.String()).NotTo(Equal(""))
-		t.Log(ts)
-		t.Log(TimestampZero)
-		t.Log(TimestampUnixZero)
+		ts := Timestamp{Time: time.UnixMilli(1234)}
+		NewWithT(t).Expect(ts.String()).To(Equal("1970-01-01T08:00:01.234CST"))
 	})
-
-	t.Run("MarshalText", func(t *testing.T) {
-		text, err := ts.MarshalText()
+	t.Run("TextArshaler", func(t *testing.T) {
+		ts := Now()
+		data, err := ts.MarshalText()
 		NewWithT(t).Expect(err).To(BeNil())
-		t.Log(string(text))
-	})
+		NewWithT(t).Expect(data).To(Equal([]byte(ts.String())))
 
-	t.Run("UnmarshalText", func(t *testing.T) {
-		text, err := ts.MarshalText()
+		err = ts.UnmarshalText([]byte("1970-01-01T00:00:01.234UTC"))
 		NewWithT(t).Expect(err).To(BeNil())
 
-		t5 := Timestamp{}
-		NewWithT(t).Expect(t5.UnmarshalText(text)).To(BeNil())
-		NewWithT(t).Expect(t5.Equal(ts)).To(BeTrue())
-		NewWithT(t).Expect(t5.UnmarshalText([]byte("invalid timestamp string"))).NotTo(BeNil())
+		err = ts.UnmarshalText([]byte("1970-01-01T00:00:01.234"))
+		NewWithT(t).Expect(err).NotTo(BeNil())
+
+		err = ts.UnmarshalText([]byte(""))
+		NewWithT(t).Expect(err).To(BeNil())
 	})
-
-	// std.Time tests
-	now := time.Now()
-	shadow, err := time.Parse(time.RFC3339, now.Format(time.RFC3339))
-	NewWithT(t).Expect(err).To(BeNil())
-	NewWithT(t).Expect(now.Equal(shadow)).To(BeFalse())
-
-	shadow2, err := time.Parse(time.RFC3339Nano, now.Format(time.RFC3339Nano))
-	NewWithT(t).Expect(err).To(BeNil())
-	NewWithT(t).Expect(now.Equal(shadow2)).To(BeTrue())
-
-	t6 := time.Time{}
-	t.Log(t6.IsZero())
-	t7 := time.Unix(0, 0)
-	t.Log(t7.IsZero())
-	t.Log(TimestampZero.Unix())
-	t.Log(TimestampUnixZero.Unix())
+	t.Run("IsZero", func(t *testing.T) {
+		NewWithT(t).Expect(TimestampZero.IsZero()).To(BeTrue())
+		NewWithT(t).Expect(TimestampUnixZero.IsZero()).To(BeTrue())
+		ts := Timestamp{Time: time.UnixMicro(0)}
+		NewWithT(t).Expect(ts.IsZero()).To(BeTrue())
+		NewWithT(t).Expect(Now().IsZero()).To(BeFalse())
+	})
 }

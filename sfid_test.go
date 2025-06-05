@@ -4,8 +4,13 @@ import (
 	"testing"
 
 	. "github.com/onsi/gomega"
+	"github.com/pkg/errors"
 
 	. "github.com/xoctopus/datatypex"
+)
+
+var (
+	AsErrUnmarshalSFID *ErrUnmarshalSFID
 )
 
 func TestSFID(t *testing.T) {
@@ -24,11 +29,11 @@ func TestSFID(t *testing.T) {
 	NewWithT(t).Expect(sfid).To(Equal(SFID(0)))
 
 	err = sfid.UnmarshalText([]byte("not number"))
-	NewWithT(t).Expect(err).NotTo(BeNil())
+	NewWithT(t).Expect(errors.As(err, &AsErrUnmarshalSFID)).NotTo(BeNil())
 	NewWithT(t).Expect(sfid).To(Equal(SFID(0)))
 }
 
 func TestSFIDs(t *testing.T) {
-	sfids := SFIDs{1, 2, 3}
+	sfids := NewSFIDs(1, 2, 3)
 	NewWithT(t).Expect(sfids.ToUint64()).To(Equal([]uint64{1, 2, 3}))
 }

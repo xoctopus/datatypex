@@ -8,40 +8,37 @@ import (
 	"reflect"
 )
 
-// SqlValue can convert between sql value and describe sql datatype
-type SqlValue interface {
-	driver.Value
-	sql.Scanner
-	DataType(engine string) string
-}
-
-type TextValue interface {
-	encoding.TextUnmarshaler
-	encoding.TextMarshaler
-}
-
-type JSONValue interface {
-	json.Unmarshaler
-	json.Marshaler
-}
-
-// Assertions
-var (
-	_ SqlValue = (*Address)(nil)
-	_ SqlValue = (*Timestamp)(nil)
-	_ SqlValue = (*UUID)(nil)
-)
-
-// Reflects
-var (
-	RtTextUnmarshaller = reflect.TypeOf((*encoding.TextUnmarshaler)(nil)).Elem()
-	RtTextMarshaller   = reflect.TypeOf((*encoding.TextMarshaler)(nil)).Elem()
-)
-
-// Interfaces
 type (
 	DefaultSetter    interface{ SetDefault() }
-	CanBeZero        interface{ Zero() bool }
+	ZeroChecker      interface{ IsZero() bool }
 	Stringer         interface{ String() string }
 	SecurityStringer interface{ SecurityString() string }
 )
+
+var (
+	TypeDefaultSetter    = reflect.TypeFor[DefaultSetter]()
+	TypeZeroChecker      = reflect.TypeFor[ZeroChecker]()
+	TypeStringer         = reflect.TypeFor[Stringer]()
+	TypeSecurityStringer = reflect.TypeFor[SecurityStringer]()
+)
+
+// DBEngineType identifies rdb engine type, usually it is `postgres`, `mysql`,
+// `sqlite` or `sqlite3`, etc.
+type DBEngineType string
+
+// DBValue can convert between rdb value and go value with description of rdb datatype
+type DBValue interface {
+	driver.Valuer
+	sql.Scanner
+	DBType(engine DBEngineType) string
+}
+
+type TextArshaler interface {
+	encoding.TextMarshaler
+	encoding.TextUnmarshaler
+}
+
+type JSONArshaler interface {
+	json.Marshaler
+	json.Unmarshaler
+}
