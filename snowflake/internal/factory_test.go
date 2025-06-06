@@ -12,7 +12,7 @@ import (
 )
 
 var (
-	base_, _ = time.ParseInLocation(datatypex.DefaultTimestampLayout, "2025-05-21T00:00:00.000UTC", time.UTC)
+	base_, _ = time.Parse(datatypex.DefaultTimestampLayout, "2025-05-21T00:00:00.000Z")
 	// benchN as unit for generate factories for benchmarking
 	benchN int
 )

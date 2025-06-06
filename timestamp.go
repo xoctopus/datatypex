@@ -21,16 +21,16 @@ var (
 
 // DefaultTimestampLayout default timestamp layout with millisecond precision
 // and time zone
-const DefaultTimestampLayout = "2006-01-02T15:04:05.000MST"
+const DefaultTimestampLayout = "2006-01-02T15:04:05.000Z07"
 
-var gDefaultTimeZone = time.Local
+var gDefaultTimeZone = UTC
 
 func SetDefaultTimeZone(tz *time.Location) {
 	gDefaultTimeZone = tz
 }
 
 func Now() Timestamp {
-	return Timestamp{time.Now().In(gDefaultTimeZone)}
+	return Timestamp{time.Now()}
 }
 
 func ParseTimestamp(s string) (Timestamp, error) {
@@ -42,7 +42,7 @@ func ParseTimestampWithLayout(input, layout string) (Timestamp, error) {
 	if err != nil {
 		return TimestampUnixZero, err
 	}
-	return Timestamp{t.In(gDefaultTimeZone)}, nil
+	return Timestamp{t}, nil
 }
 
 // openapi:strfmt date-time
@@ -87,6 +87,7 @@ func (t Timestamp) Value() (driver.Value, error) {
 	return ts, nil
 }
 
+// String time string with default timestamp layout
 func (t Timestamp) String() string {
 	if t.IsZero() {
 		return ""

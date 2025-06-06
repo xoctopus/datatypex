@@ -12,31 +12,29 @@ import (
 )
 
 func ExampleTimestamp_String() {
-	ts, _ := ParseTimestamp("2022-10-24T07:30:00.000CST")
-	fmt.Println("SYS:", ts.String()) // default use time.Local
+	input := "2022-10-24T07:30:00.000+08"
 
 	SetDefaultTimeZone(UTC)
-	ts, _ = ParseTimestamp("2022-10-24T07:30:00.000CST")
+	ts, _ := ParseTimestamp(input)
 	fmt.Println("UTC:", ts.String())
 
 	SetDefaultTimeZone(CST)
-	ts, _ = ParseTimestamp("2022-10-24T07:30:00.000CST")
+	ts, _ = ParseTimestamp(input)
 	fmt.Println("CST:", ts.String())
 
 	SetDefaultTimeZone(JST)
-	ts, _ = ParseTimestamp("2022-10-24T07:30:00.000CST")
+	ts, _ = ParseTimestamp(input)
 	fmt.Println("JST:", ts.String())
 
 	SetDefaultTimeZone(SGT)
-	ts, _ = ParseTimestamp("2022-10-24T07:30:00.000CST")
+	ts, _ = ParseTimestamp(input)
 	fmt.Println("SGT:", ts.String())
 
 	// Output:
-	// SYS: 2022-10-24T07:30:00.000CST
-	// UTC: 2022-10-23T23:30:00.000UTC
-	// CST: 2022-10-24T07:30:00.000CST
-	// JST: 2022-10-24T08:30:00.000JST
-	// SGT: 2022-10-24T07:30:00.000SGT
+	// UTC: 2022-10-23T23:30:00.000Z
+	// CST: 2022-10-24T07:30:00.000+08
+	// JST: 2022-10-24T08:30:00.000+09
+	// SGT: 2022-10-24T07:30:00.000+08
 }
 
 var (
@@ -62,7 +60,7 @@ func TestTimestamp(t *testing.T) {
 		NewWithT(t).Expect(ts.DBType("sqlite")).To(Equal("integer"))
 	})
 	t.Run("Value", func(t *testing.T) {
-		ts, err := ParseTimestamp("1970-01-01T00:00:01.234UTC")
+		ts, err := ParseTimestamp("1970-01-01T00:00:01.234Z")
 		NewWithT(t).Expect(err).To(BeNil())
 		v, err := ts.Value()
 		NewWithT(t).Expect(err).To(BeNil())
@@ -101,7 +99,7 @@ func TestTimestamp(t *testing.T) {
 	t.Run("String", func(t *testing.T) {
 		NewWithT(t).Expect(TimestampUnixZero.String()).To(Equal(""))
 		ts := Timestamp{Time: time.UnixMilli(1234)}
-		NewWithT(t).Expect(ts.String()).To(Equal("1970-01-01T08:00:01.234CST"))
+		NewWithT(t).Expect(ts.String()).To(Equal("1970-01-01T08:00:01.234+08"))
 	})
 	t.Run("TextArshaler", func(t *testing.T) {
 		ts := Now()
@@ -109,10 +107,10 @@ func TestTimestamp(t *testing.T) {
 		NewWithT(t).Expect(err).To(BeNil())
 		NewWithT(t).Expect(data).To(Equal([]byte(ts.String())))
 
-		err = ts.UnmarshalText([]byte("1970-01-01T00:00:01.234UTC"))
+		err = ts.UnmarshalText([]byte("1970-01-01T00:00:01.234+08"))
 		NewWithT(t).Expect(err).To(BeNil())
 
-		err = ts.UnmarshalText([]byte("1970-01-01T00:00:01.234"))
+		err = ts.UnmarshalText([]byte("1970-01-01T00:00:01.234CST"))
 		NewWithT(t).Expect(err).NotTo(BeNil())
 
 		err = ts.UnmarshalText([]byte(""))

@@ -10,7 +10,7 @@ import (
 )
 
 var (
-	base, _ = time.ParseInLocation(datatypex.DefaultTimestampLayout, "2025-05-21T00:00:00.000UTC", time.UTC)
+	base, _ = time.Parse(datatypex.DefaultTimestampLayout, "2025-05-21T00:00:00.000Z")
 	g1      = NewIDGen(3)
 	g2      = NewSnowflake(2, 1, base, 10, 12)
 )
