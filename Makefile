@@ -4,11 +4,10 @@ MOD_NAME=$(shell basename $(MOD))
 
 GOTEST=xgo
 GOBUILD=go
-GOFMT=goimports-reviser
 
 # dependencies
-GOIMPORTS=$(shell type goimports-reviser > /dev/null 2>&1 && echo $$?)
-XGO=$(shell type xgo > /dev/null 2>&1 && echo $$?)
+DEP_FMT=$(shell type goimports-reviser > /dev/null 2>&1 && echo $$?)
+DEP_XGO=$(shell type xgo > /dev/null 2>&1 && echo $$?)
 
 # git info
 GIT_COMMIT=$(shell git rev-parse --short HEAD)
@@ -20,63 +19,66 @@ show:
 	@echo "packages:"
 	@for item in $(PACKAGES); do echo "\t$$item"; done
 	@echo "module:"
-	@echo "\t$(MOD)"
+	@echo "\tpath=$(MOD)"
+	@echo "\tmodule=$(MOD_NAME)"
 	@echo "tools:"
-	@echo "\tbuild=$(GOBUILD) test=$(GOTEST) fmt=$(GOFMT) xgo=$(XGO)"
-	@echo "git:"
+	@echo "\tbuild=$(GOBUILD)"
+	@echo "\ttest=$(GOTEST)"
+	@echo "\tgoimports-reviser=$(shell which goimports-reviser)"
+	@echo "\txgo=$(shell which xgo)"
+	@echo "git info:"
 	@echo "\tcommit_id=$(GIT_COMMIT)\n\ttag=$(GIT_TAG)\n\tbranch=$(GIT_BRANCH)\n\tbuild_time=$(BUILD_AT)\n\tname=$(MOD_NAME)"
 
 # install dependencies
 dep:
-	@if [ "${GOIMPORTS}" != "0" ]; then \
-		echo "installing goimports-reviser for format sources"; \
-		go install -v github.com/incu6us/goimports-reviser/v3@latest; \
+	@echo "==> installing dependencies"
+	@if [ "${DEP_FMT}" != "0" ]; then \
+		echo "\tgoimports-reviser for format sources"; \
+		go install github.com/incu6us/goimports-reviser/v3@latest; \
 	fi
-	@if [ "${GOTEST}" = "xgo" ] && [ "${XGO}" != "0" ]; then \
-		echo "installing xgo for unit test"; \
+	@if [ "${GOTEST}" = "xgo" ] && [ "${DEP_XGO}" != "0" ]; then \
+		echo "\txgo for unit test"; \
+		go install github.com/xhd2015/xgo/cmd/xgo@latest; \
+	fi
+
+upgrade-dep:
+	@echo "==> upgrading dependencies"
+	@echo "\tupgrading goimports-reviser for format sources"
+	@go install github.com/incu6us/goimports-reviser/v3@latest
+	@if [ "${GOTEST}" = "xgo" ]; then \
+		echo "\tupgrading xgo for unit test"; \
 		go install github.com/xhd2015/xgo/cmd/xgo@latest; \
 	fi
 
 update:
-	@echo "==> installing goimports-reviser for format sources"
-	@go install -v github.com/incu6us/goimports-reviser/v3@latest
-	@if [ "${GOTEST}" == "xgo" ]; then \
-		echo "==> installing xgo for unit test"; \
-		go install github.com/xhd2015/xgo/cmd/xgo@latest; \
-	fi
-	@echo "==> updating go module dependencies"
 	@go get -u all
 
 tidy:
 	@echo "==> tidy"
 	@go mod tidy
 
-cover: show dep tidy
+test: dep tidy
+	@echo "==> run unit test"
+	@if [ "${GOTEST}" = "xgo" ]; then \
+		$(GOTEST) test -failfast -parallel 1 -gcflags="all=-N -l" ${PACKAGES}; # xgo mock functions may cause data race \
+	else \
+		$(GOTEST) test -race -failfast -parallel 1 -gcflags="all=-N -l" ${PACKAGES}; \
+	fi
+
+cover: dep tidy
 	@echo "==> run unit test with coverage"
 	@$(GOTEST) test -failfast -parallel 1 -gcflags="all=-N -l" ${PACKAGES} -covermode=count -coverprofile=cover.out
 
-view_cover: dep tidy
+view_cover: cover
 	@echo "==> run unit test with coverage and view"
-	@$(GOTEST) test -failfast -parallel 1 -gcflags="all=-N -l" ${PACKAGES} -covermode=count -coverprofile=cover.out && go tool cover -html cover.out
-
-test: dep tidy
-	@echo "==> run unit test"
-	@$(GOTEST) test -race -failfast -parallel 1 -gcflags="all=-N -l" ${PACKAGES}
-
-benchmark: dep tidy
-	@echo "==> run benchmark"
-	@$(GOBUILD) test -bench=. -benchmem ${PACKAGES}
+	@go tool cover -html cover.out
 
 vet:
 	@go vet ${PACKAGES}
 
-fmt: clean
+fmt: dep clean
 	@echo "==> format code"
-	@if [ "${GOFMT}" == "goimports-reviser" ]; then \
-		goimports-reviser -rm-unused -set-alias -output write -imports-order 'std,general,company,project' -excludes '.git/,.xgo/,*.pb.go,*_generated.go' ./...; \
-	else \
-		go fmt ./...; \
-	fi
+	@goimports-reviser -rm-unused -set-alias -output write -imports-order 'std,general,company,project' -excludes '.git/,.xgo/,*.pb.go,*_generated.go' ./...
 
 report:
 	@echo ">>>static checking"
@@ -93,9 +95,3 @@ clean:
 	@find . -name cover.out | xargs rm -rf
 	@find . -name .xgo | xargs rm -rf
 	@rm -rf build/*
-
-check: show tidy update vet cover fmt clean
-
-benchmark_snowflake:
-	@cd snowflake/internal
-	@go test -bench=BenchmarkSnowflake_ID -benchtime=30000x -unit=1 ## modify unit to assign factory
