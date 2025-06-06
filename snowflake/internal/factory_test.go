@@ -86,7 +86,8 @@ func TestFactory(t *testing.T) {
 			for _, n := range []int64{1, 2, 5, 6, 8} {
 				start := time.Now()
 				_, _ = f.Elapsed(), f.Next(n)
-				sub := int64(time.Now().Sub(start)) / int64(unit) / int64(time.Millisecond)
+				sub := int64(time.Since(start)) / int64(unit) / int64(time.Millisecond)
+				// sub := int64(time.Now().Sub(start)) / int64(unit) / int64(time.Millisecond)
 				NewWithT(t).Expect(n-1 <= sub && sub <= n+1).To(BeTrue())
 			}
 		}

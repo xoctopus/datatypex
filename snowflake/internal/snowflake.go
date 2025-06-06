@@ -1,17 +1,9 @@
 package internal
 
 import (
-	rand "math/rand/v2"
 	"sync"
 	"time"
 )
-
-var _rand *rand.Rand
-
-func init() {
-	ts := uint64(time.Now().UnixNano())
-	_rand = rand.New(rand.NewPCG(ts<<32, ts>>32))
-}
 
 func NewSnowflake(worker uint32, unit int, base time.Time, w, s int) *Snowflake {
 	return NewFactory(unit, base, w, s).New(worker)
