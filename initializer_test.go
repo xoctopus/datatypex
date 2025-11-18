@@ -4,8 +4,8 @@ import (
 	"context"
 	"testing"
 
-	. "github.com/onsi/gomega"
 	"github.com/pkg/errors"
+	. "github.com/xoctopus/x/testx"
 
 	"github.com/xoctopus/datatypex"
 )
@@ -46,11 +46,11 @@ func TestInit(t *testing.T) {
 		r1 := datatypex.Init(v.value)
 		r2 := datatypex.InitByContext(context.Background(), v.value)
 		if v.result == nil {
-			NewWithT(t).Expect(r1).To(BeNil())
-			NewWithT(t).Expect(r2).To(BeNil())
+			Expect(t, r1, BeNil[error]())
+			Expect(t, r2, BeNil[error]())
 		} else {
-			NewWithT(t).Expect(r1).To(BeEquivalentTo(v.result))
-			NewWithT(t).Expect(r2).To(BeEquivalentTo(v.result))
+			Expect(t, r1, Equal(v.result))
+			Expect(t, r2, Equal(v.result))
 		}
 	}
 }

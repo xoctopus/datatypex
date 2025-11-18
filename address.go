@@ -89,6 +89,6 @@ func (a *Address) Scan(src any) error {
 	return a.UnmarshalText([]byte(src.(string)))
 }
 
-func (a Address) DBType(engine DBEngineType) string {
+func (a Address) DBType(driver string) string {
 	return "varchar(1024)"
 }

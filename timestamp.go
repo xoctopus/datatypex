@@ -48,9 +48,9 @@ func ParseTimestampWithLayout(input, layout string) (Timestamp, error) {
 // openapi:strfmt date-time
 type Timestamp struct{ time.Time }
 
-func (Timestamp) DBType(engine DBEngineType) string {
-	switch engine {
-	case "postgres":
+func (Timestamp) DBType(driver string) string {
+	switch driver {
+	case "postgres", "mysql":
 		return "bigint"
 	default:
 		return "integer"

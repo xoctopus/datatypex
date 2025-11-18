@@ -1,18 +1,14 @@
 module github.com/xoctopus/datatypex
 
-go 1.24
+go 1.25.4
 
 require (
 	github.com/google/uuid v1.6.0
-	github.com/onsi/gomega v1.37.0
 	github.com/pkg/errors v0.9.1
-	github.com/xhd2015/xgo/runtime v1.1.7
-	github.com/xoctopus/x v0.1.0
+	github.com/xoctopus/x v0.2.0
 )
 
 require (
 	github.com/google/go-cmp v0.7.0 // indirect
-	golang.org/x/net v0.41.0 // indirect
-	golang.org/x/text v0.26.0 // indirect
-	gopkg.in/yaml.v3 v3.0.1 // indirect
+	golang.org/x/exp v0.0.0-20251017212417-90e834f514db // indirect
 )

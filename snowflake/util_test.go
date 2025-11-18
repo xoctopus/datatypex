@@ -4,12 +4,10 @@ import (
 	randv1 "math/rand"
 	randv2 "math/rand/v2"
 	"net"
-	"os"
 	"testing"
 	"time"
 
-	. "github.com/onsi/gomega"
-	"github.com/xhd2015/xgo/runtime/mock"
+	. "github.com/xoctopus/x/testx"
 
 	. "github.com/xoctopus/datatypex/snowflake"
 )
@@ -25,17 +23,10 @@ func TestWorkerIDFromIP(t *testing.T) {
 	} {
 		addr := net.ParseIP(c.ipv4Addr)
 		wid := WorkerIDFromIP(addr)
-		NewWithT(t).Expect(wid).To(Equal(c.workerId))
+		Expect(t, wid, Equal(c.workerId))
 	}
 	_, err := WorkerIDFromLocalIP()
-	NewWithT(t).Expect(err).To(BeNil())
-
-	t.Run("FailedToLookupIP", func(t *testing.T) {
-		mock.Patch(os.Hostname, func() (string, error) { return "", nil })
-		mock.Patch(os.Getenv, func(string) string { return "" })
-		_, err = WorkerIDFromLocalIP()
-		NewWithT(t).Expect(err).NotTo(BeNil())
-	})
+	Expect(t, err, Succeed())
 }
 
 func BenchmarkRand(b *testing.B) {
@@ -66,5 +57,4 @@ func BenchmarkRand(b *testing.B) {
 			_ = r.Uint32()
 		}
 	})
-
 }

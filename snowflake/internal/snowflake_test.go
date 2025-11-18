@@ -5,10 +5,8 @@ import (
 	"sync"
 	"sync/atomic"
 	"testing"
-	"time"
 
-	. "github.com/onsi/gomega"
-	"github.com/xhd2015/xgo/runtime/mock"
+	. "github.com/xoctopus/x/testx"
 
 	. "github.com/xoctopus/datatypex/snowflake/internal"
 )
@@ -79,7 +77,7 @@ func NewSnowflakeTestSuite(t *testing.T, n int) *SnowflakeTestSuite {
 }
 
 func (s *SnowflakeTestSuite) ExpectN(n int) {
-	NewWithT(s.T).Expect(s.size.Load()).To(Equal(int64(n)))
+	Expect(s.T, s.size.Load(), Equal(int64(n)))
 }
 
 func (s *SnowflakeTestSuite) Run(sf *Snowflake) {
@@ -93,14 +91,14 @@ func (s *SnowflakeTestSuite) Run(sf *Snowflake) {
 func TestSnowflake_ID(t *testing.T) {
 	gap, worker, seq := 1, 10, 12
 	f := NewFactory(1, base_, 10, 12)
-	NewWithT(t).Expect(f.Unit()).To(Equal(gap))
-	NewWithT(t).Expect(f.SeqBits()).To(Equal(seq))
-	NewWithT(t).Expect(f.WorkerBits()).To(Equal(worker))
+	Expect(t, f.Unit(), Equal(gap))
+	Expect(t, f.SeqBits(), Equal(seq))
+	Expect(t, f.WorkerBits(), Equal(worker))
 
 	g1 := f.New(1)
 	g2 := NewSnowflake(1, 1, base_, 10, 12)
-	NewWithT(t).Expect(g1.WorkerID()).To(Equal(g2.WorkerID()))
-	NewWithT(t).Expect(g1.Tag()).To(Equal(g2.Tag()))
+	Expect(t, g1.WorkerID(), Equal(g2.WorkerID()))
+	Expect(t, g1.Tag(), Equal(g2.Tag()))
 
 	t.Run(f.String()+"_1x", func(t *testing.T) {
 		g := NewFactory(1, base_, 4, 4).New(1)
@@ -108,7 +106,7 @@ func TestSnowflake_ID(t *testing.T) {
 		for i := 0; i < 10000; i++ {
 			func() {
 				defer func() {
-					NewWithT(t).Expect(recover()).To(BeNil())
+					Expect(t, recover(), BeNil[any]())
 				}()
 				_ = g.ID()
 			}()
@@ -135,14 +133,15 @@ func TestSnowflake_ID(t *testing.T) {
 	})
 
 	t.Run(f.Tag()+"InvalidClock", func(t *testing.T) {
-		g1.ID()
-		now := time.Now()
+		t.Skip("xgo is not support go1.25")
+		// g1.ID()
+		// now := time.Now()
 
-		defer func() {
-			NewWithT(t).Expect(recover().(string)).To(Equal("invalid system clock, clock moved backwards"))
-		}()
+		// defer func() {
+		// 	NewWithT(t).Expect(recover().(string)).To(Equal("invalid system clock, clock moved backwards"))
+		// }()
 
-		mock.Patch(time.Now, func() time.Time { return now.Add(0 - 10*time.Second) })
-		g1.ID()
+		// mock.Patch(time.Now, func() time.Time { return now.Add(0 - 10*time.Second) })
+		// g1.ID()
 	})
 }

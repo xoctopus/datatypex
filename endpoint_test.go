@@ -4,8 +4,8 @@ import (
 	"net/url"
 	"testing"
 
-	. "github.com/onsi/gomega"
 	"github.com/pkg/errors"
+	. "github.com/xoctopus/x/testx"
 
 	. "github.com/xoctopus/datatypex"
 )
@@ -61,28 +61,28 @@ func TestParseEndpoint(t *testing.T) {
 	for name, c := range cases {
 		t.Run(name, func(t *testing.T) {
 			ep, err := ParseEndpoint(c.uri)
-			NewWithT(t).Expect(err).To(BeNil())
-			NewWithT(t).Expect(ep.String()).To(Equal(c.uri))
-			NewWithT(t).Expect(ep.String()).To(Equal(c.expect.String()))
-			NewWithT(t).Expect(ep.SecurityString()).To(Equal(c.expect.SecurityString()))
-			NewWithT(t).Expect(ep.IsZero()).To(Equal(c.expect.IsZero()))
-			NewWithT(t).Expect(ep.Hostname()).To(Equal(c.expect.Hostname()))
+			Expect(t, err, Succeed())
+			Expect(t, ep.String(), Equal(c.uri))
+			Expect(t, ep.String(), Equal(c.expect.String()))
+			Expect(t, ep.SecurityString(), Equal(c.expect.SecurityString()))
+			Expect(t, ep.IsZero(), Equal(c.expect.IsZero()))
+			Expect(t, ep.Hostname(), Equal(c.expect.Hostname()))
 
 			text, err := c.expect.MarshalText()
-			NewWithT(t).Expect(err).To(BeNil())
-			NewWithT(t).Expect(text).To(Equal([]byte(c.uri)))
+			Expect(t, err, Succeed())
+			Expect(t, text, Equal([]byte(c.uri)))
 
 			err = ep.UnmarshalText(text)
-			NewWithT(t).Expect(err).To(BeNil())
-			NewWithT(t).Expect(ep.String()).To(Equal(c.uri))
+			Expect(t, err, Succeed())
+			Expect(t, ep.String(), Equal(c.uri))
 		})
 	}
 
 	t.Run("FailedToParseURL", func(t *testing.T) {
 		input := "http://hostname:http/path/to/resource"
 		_, err := ParseEndpoint(input)
-		NewWithT(t).Expect(errors.As(err, &AsErrParseEndpointByURL)).To(BeTrue())
+		Expect(t, errors.As(err, &AsErrParseEndpointByURL), BeTrue())
 		err = (&Endpoint{}).UnmarshalText([]byte(input))
-		NewWithT(t).Expect(errors.As(err, &AsErrParseEndpointByURL)).To(BeTrue())
+		Expect(t, errors.As(err, &AsErrParseEndpointByURL), BeTrue())
 	})
 }

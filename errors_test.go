@@ -5,7 +5,7 @@ import (
 	"reflect"
 	"testing"
 
-	. "github.com/onsi/gomega"
+	. "github.com/xoctopus/x/testx"
 
 	. "github.com/xoctopus/datatypex"
 )
@@ -26,10 +26,10 @@ func TestErrors(t *testing.T) {
 		NewErrTimestampScanInvalidInput(reflect.ValueOf(1)),
 		NewErrUnmarshalSFID([]byte(input), cause),
 	} {
-		NewWithT(t).Expect(e).NotTo(BeNil())
+		Expect(t, e, NotBeNil[error]())
 		t.Log(e)
 		if u, ok := e.(ErrorWrapper); ok {
-			NewWithT(t).Expect(u.Unwrap()).To(Equal(cause))
+			Expect(t, u.Unwrap(), Equal(cause))
 		}
 	}
 
@@ -38,6 +38,6 @@ func TestErrors(t *testing.T) {
 		NewErrParseEndpointByURL(input, nil),
 		NewErrUnmarshalSFID(nil, nil),
 	} {
-		NewWithT(t).Expect(e).To(BeNil())
+		Expect(t, e, BeNil[error]())
 	}
 }

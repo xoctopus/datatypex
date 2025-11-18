@@ -17,7 +17,7 @@ func init() {
 		input = "2025-05-21T00:00:00.000Z"
 	)
 	base, err = time.Parse(datatypex.DefaultTimestampLayout, input)
-	must.NoErrorWrap(err, "failed to parse base timestamp: %s", input)
+	must.NoErrorF(err, "failed to parse base timestamp: %s", input)
 }
 
 type IDGen interface {

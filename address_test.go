@@ -3,9 +3,9 @@ package datatypex_test
 import (
 	"testing"
 
-	. "github.com/onsi/gomega"
 	"github.com/pkg/errors"
 	"github.com/xoctopus/x/misc/must"
+	. "github.com/xoctopus/x/testx"
 
 	. "github.com/xoctopus/datatypex"
 )
@@ -45,11 +45,11 @@ func TestAddress_MarshalText(t *testing.T) {
 	for _, c := range cases {
 		t.Run(c.Name, func(t *testing.T) {
 			bytes, err := c.Addr.Value()
-			NewWithT(t).Expect(err).To(BeNil())
-			NewWithT(t).Expect(bytes).To(Equal(c.Expect))
+			Expect(t, err, Succeed())
+			Expect(t, bytes.(string), Equal(c.Expect))
 			raw, err := c.Addr.MarshalText()
-			NewWithT(t).Expect(err).To(BeNil())
-			NewWithT(t).Expect(string(raw)).To(Equal(c.Expect))
+			Expect(t, err, Succeed())
+			Expect(t, string(raw), Equal(c.Expect))
 		})
 	}
 
@@ -86,11 +86,11 @@ func TestAddress_UnmarshalText(t *testing.T) {
 			v := &Address{}
 			err := v.Scan(c.Input)
 			if err != nil {
-				NewWithT(t).Expect(errors.As(err, &c.OutErr)).NotTo(BeNil())
+				Expect(t, errors.As(err, &c.OutErr), BeTrue())
 			} else {
-				NewWithT(t).Expect(v.String()).To(Equal(c.OutVal.String()))
+				Expect(t, v.String(), Equal(c.OutVal.String()))
 			}
 		})
 	}
-	NewWithT(t).Expect((&Address{}).DBType("")).To(Equal("varchar(1024)"))
+	Expect(t, (&Address{}).DBType(""), Equal("varchar(1024)"))
 }

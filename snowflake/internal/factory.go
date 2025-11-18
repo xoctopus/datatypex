@@ -26,19 +26,19 @@ type part struct {
 // clock moves backward within the `unit` range, the computed factory gap
 // remains consistent, avoiding conflicts.
 func NewFactory(unit int, base time.Time, bits ...int) *Factory {
-	must.BeTrueWrap(
+	must.BeTrueF(
 		base.Before(time.Now()),
 		"the base timestamp MUST before now.",
 	)
-	must.BeTrueWrap(
+	must.BeTrueF(
 		len(bits) == 2,
 		"worker bits and sequence bits MUST be assigned",
 	)
-	must.BeTrueWrap(
+	must.BeTrueF(
 		bits[0] < 32 && bits[1] < 32 && 63-bits[0]-bits[1] > 0,
 		"worker bits and sequence bits MUST be less than 32 and timestamp bits MUST be greater than 0.",
 	)
-	must.BeTrueWrap(
+	must.BeTrueF(
 		unit > 0,
 		"unit MUST be greater than 0",
 	)
@@ -53,7 +53,7 @@ func NewFactory(unit int, base time.Time, bits ...int) *Factory {
 	end := time.Now().Add(10 * 365 * 24 * 60 * 60 * time.Second)
 	hi, lo := mbits.Mul64(uint64(f.gap.max), uint64(f.unit))
 	ts := time.Unix(int64(lo)/int64(time.Second), int64(lo)%int64(time.Second))
-	must.BeTrueWrap(
+	must.BeTrueF(
 		hi > 0 || ts.Sub(end) > 0,
 		"factory MUST be able to generate continuously for 10 years or longer from now",
 	)
@@ -109,7 +109,7 @@ func (f *Factory) New(wid uint32) *Snowflake {
 }
 
 func (f *Factory) Build(worker, seq uint32, gap int64) int64 {
-	must.BeTrueWrap(
+	must.BeTrueF(
 		gap <= f.gap.max,
 		"assigned elapsed %d is greater than max units of factory %d",
 		gap, f.gap.max,

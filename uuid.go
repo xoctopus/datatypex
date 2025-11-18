@@ -16,8 +16,8 @@ type UUID struct {
 	uuid.UUID
 }
 
-func (UUID) DBType(engine DBEngineType) string {
-	switch engine {
+func (UUID) DBType(driver string) string {
+	switch driver {
 	case "postgres":
 		return "uuid"
 	case "mysql", "sqlite", "sqlite3":

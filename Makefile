@@ -2,7 +2,7 @@ PACKAGES=$(shell go list ./... | grep -E -v 'pb$|testdata|mock|proto|example')
 MOD=$(shell cat go.mod | grep ^module -m 1 | awk '{ print $$2; }' || '')
 MOD_NAME=$(shell basename $(MOD))
 
-GOTEST=xgo
+GOTEST=go
 GOBUILD=go
 
 # dependencies
@@ -121,7 +121,7 @@ lint: dep
 	@golangci-lint run ./...
 	@echo "\tdone"
 
-pre-commit: upgrade-dep lint fmt cover clean
+pre-commit: dep lint fmt cover clean
 
 clean:
 	@find . -name cover.out | xargs rm -rf

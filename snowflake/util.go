@@ -2,24 +2,17 @@ package snowflake
 
 import (
 	"net"
-	"os"
 )
 
 func WorkerIDFromLocalIP() (uint32, error) {
-	hostname, _ := os.Hostname()
-	if hostname == "" {
-		hostname = os.Getenv("HOSTNAME")
-	}
-
 	var ipv4 net.IP
-	addresses, err := net.LookupIP(hostname)
-	if err != nil {
-		return 0, err
-	}
 
+	addresses, _ := net.InterfaceAddrs()
 	for _, addr := range addresses {
-		if ipv4 = addr.To4(); ipv4 != nil {
-			break
+		if ip, ok := addr.(*net.IPNet); ok && !ip.IP.IsLoopback() {
+			if ipv4 = ip.IP.To4(); ipv4 != nil {
+				break
+			}
 		}
 	}
 	return WorkerIDFromIP(ipv4), nil

@@ -3,6 +3,8 @@ package internal
 import (
 	"sync"
 	"time"
+
+	"github.com/xoctopus/x/misc/must"
 )
 
 func NewSnowflake(worker uint32, unit int, base time.Time, w, s int) *Snowflake {
@@ -35,9 +37,7 @@ func (s *Snowflake) ID() int64 {
 
 	if s.gap > gap {
 		gap = s.f.Elapsed()
-		if s.gap > gap {
-			panic("invalid system clock, clock moved backwards")
-		}
+		must.BeTrueF(s.gap <= gap, "invalid system clock, clock moved backwards")
 	}
 
 	// in same gap. if reached max sequence, need to wait next gap to make sure
