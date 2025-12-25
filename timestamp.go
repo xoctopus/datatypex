@@ -2,6 +2,7 @@ package datatypex
 
 import (
 	"database/sql/driver"
+	"fmt"
 	"strconv"
 	"time"
 )
@@ -62,7 +63,7 @@ func (t *Timestamp) Scan(value any) error {
 	case []byte:
 		n, err := strconv.ParseInt(string(v), 10, 64)
 		if err != nil {
-			return NewErrTimestampScanBytes(v)
+			return fmt.Errorf("failed sql.Scan(timestamp) from []byte(%q) [cause:%w]", string(v), err)
 		}
 		*t = Timestamp{time.Unix(n/1000, n%1000*1e6)}
 	case int64:
@@ -74,7 +75,7 @@ func (t *Timestamp) Scan(value any) error {
 	case nil:
 		*t = TimestampUnixZero
 	default:
-		return NewErrTimestampScanInvalidInput(v)
+		return fmt.Errorf("failed sql.Scan(timestamp) from %T. invalid input", v)
 	}
 	return nil
 }

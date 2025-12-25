@@ -3,15 +3,10 @@ package datatypex_test
 import (
 	"testing"
 
-	"github.com/pkg/errors"
 	"github.com/xoctopus/x/misc/must"
 	. "github.com/xoctopus/x/testx"
 
 	. "github.com/xoctopus/datatypex"
-)
-
-var (
-	AsErrParseAddressByURL *ErrParseAddressByURL
 )
 
 func TestAddress_MarshalText(t *testing.T) {
@@ -60,7 +55,7 @@ func TestAddress_UnmarshalText(t *testing.T) {
 		Name   string
 		Input  string
 		OutVal *Address
-		OutErr error
+		Failed bool
 	}{
 		{
 			Name:   "Asset",
@@ -77,7 +72,7 @@ func TestAddress_UnmarshalText(t *testing.T) {
 		}, {
 			Name:   "InvalidURI",
 			Input:  "http://foo.com/ctl\x7f",
-			OutErr: AsErrParseAddressByURL,
+			Failed: true,
 		},
 	}
 
@@ -86,7 +81,7 @@ func TestAddress_UnmarshalText(t *testing.T) {
 			v := &Address{}
 			err := v.Scan(c.Input)
 			if err != nil {
-				Expect(t, errors.As(err, &c.OutErr), BeTrue())
+				Expect(t, c.Failed, BeTrue())
 			} else {
 				Expect(t, v.String(), Equal(c.OutVal.String()))
 			}

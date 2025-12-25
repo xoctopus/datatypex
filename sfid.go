@@ -1,6 +1,9 @@
 package datatypex
 
-import "strconv"
+import (
+	"fmt"
+	"strconv"
+)
 
 // Number.MAX_SAFE_INTEGER JavaScript (2^53 – 1)
 
@@ -17,8 +20,11 @@ func (sf *SFID) UnmarshalText(data []byte) error {
 		return nil
 	}
 	u, err := strconv.ParseUint(str, 10, 64)
+	if err != nil {
+		return fmt.Errorf("failed to parse SFID from %q: [cause:%w]", str, err)
+	}
 	*sf = SFID(u)
-	return NewErrUnmarshalSFID(data, err)
+	return nil
 }
 
 func (sf SFID) String() string {

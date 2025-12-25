@@ -10,7 +10,7 @@ import (
 func ParseEndpoint(text string) (*Endpoint, error) {
 	u, err := url.Parse(text)
 	if err != nil {
-		return nil, NewErrParseEndpointByURL(text, err)
+		return nil, fmt.Errorf("failed to parse endpoint from %q, [cause:%w]", text, err)
 	}
 
 	ep := &Endpoint{

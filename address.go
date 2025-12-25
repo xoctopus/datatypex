@@ -11,7 +11,7 @@ import (
 func ParseAddress(text string) (*Address, error) {
 	u, err := url.Parse(text)
 	if err != nil {
-		return nil, NewErrParseAddressByURL(text, err)
+		return nil, fmt.Errorf("failed to parse address from %q, [cause:%w]", text, err)
 	}
 	a := &Address{}
 

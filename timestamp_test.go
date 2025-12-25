@@ -2,7 +2,6 @@ package datatypex_test
 
 import (
 	"database/sql/driver"
-	"errors"
 	"fmt"
 	"testing"
 	"time"
@@ -38,11 +37,6 @@ func ExampleTimestamp_String() {
 	// SGT: 2022-10-24T07:30:00.000+08
 }
 
-var (
-	AsErrTimestampScanBytes        *ErrTimestampScanBytes
-	AsErrTimestampScanInvalidInput *ErrTimestampScanInvalidInput
-)
-
 func TestTimestamp(t *testing.T) {
 	SetDefaultTimeZone(CST)
 	t.Run("ParseTimestampWithLayout", func(t *testing.T) {
@@ -76,21 +70,21 @@ func TestTimestamp(t *testing.T) {
 	t.Run("Scan", func(t *testing.T) {
 		for _, v := range []*struct {
 			input  any
-			err    any
+			failed bool
 			result Timestamp
 		}{
-			{[]byte("1970-01-01T08:00:01.234CST"), AsErrTimestampScanBytes, Timestamp{}},
-			{[]byte("1234"), nil, Timestamp{Time: time.UnixMilli(1234)}},
-			{int64(-1), nil, TimestampUnixZero},
-			{int64(0), nil, TimestampUnixZero},
-			{int64(1234), nil, Timestamp{Time: time.UnixMilli(1234)}},
-			{nil, nil, TimestampUnixZero},
-			{"abc", AsErrTimestampScanInvalidInput, Timestamp{}},
+			{[]byte("1970-01-01T08:00:01.234CST"), true, Timestamp{}},
+			{[]byte("1234"), false, Timestamp{Time: time.UnixMilli(1234)}},
+			{int64(-1), false, TimestampUnixZero},
+			{int64(0), false, TimestampUnixZero},
+			{int64(1234), false, Timestamp{Time: time.UnixMilli(1234)}},
+			{nil, false, TimestampUnixZero},
+			{"abc", true, Timestamp{}},
 		} {
 			ts := Now()
 			err := ts.Scan(v.input)
-			if v.err != nil {
-				Expect(t, errors.As(err, &v.err), BeTrue())
+			if err != nil {
+				Expect(t, v.failed, BeTrue())
 			} else {
 				Expect(t, err, Succeed())
 				Expect(t, ts == v.result, BeTrue())

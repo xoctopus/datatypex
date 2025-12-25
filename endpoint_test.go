@@ -4,14 +4,9 @@ import (
 	"net/url"
 	"testing"
 
-	"github.com/pkg/errors"
 	. "github.com/xoctopus/x/testx"
 
 	. "github.com/xoctopus/datatypex"
-)
-
-var (
-	AsErrParseEndpointByURL *ErrParseEndpointByURL
 )
 
 func TestParseEndpoint(t *testing.T) {
@@ -81,8 +76,8 @@ func TestParseEndpoint(t *testing.T) {
 	t.Run("FailedToParseURL", func(t *testing.T) {
 		input := "http://hostname:http/path/to/resource"
 		_, err := ParseEndpoint(input)
-		Expect(t, errors.As(err, &AsErrParseEndpointByURL), BeTrue())
+		Expect(t, err, Failed())
 		err = (&Endpoint{}).UnmarshalText([]byte(input))
-		Expect(t, errors.As(err, &AsErrParseEndpointByURL), BeTrue())
+		Expect(t, err, Failed())
 	})
 }

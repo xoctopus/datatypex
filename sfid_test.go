@@ -3,14 +3,9 @@ package datatypex_test
 import (
 	"testing"
 
-	"github.com/pkg/errors"
 	. "github.com/xoctopus/x/testx"
 
 	. "github.com/xoctopus/datatypex"
-)
-
-var (
-	AsErrUnmarshalSFID *ErrUnmarshalSFID
 )
 
 func TestSFID(t *testing.T) {
@@ -29,7 +24,7 @@ func TestSFID(t *testing.T) {
 	Expect(t, sfid, Equal(SFID(0)))
 
 	err = sfid.UnmarshalText([]byte("not number"))
-	Expect(t, errors.As(err, &AsErrUnmarshalSFID), BeTrue())
+	Expect(t, err, Failed())
 	Expect(t, sfid, Equal(SFID(0)))
 }
 
